@@ -67,7 +67,7 @@ for bot in bots:
 	element = (bot, steem_power / 1e4, power, b, c)
 	slist.append(element)
 	
-sorted_list = sorted(slist, key=lambda x:x[2])
+sorted_list = sorted(slist, key=lambda x:float(x[2]))
 
 for stats in sorted_list:
 	bot_name, bot_worth, power, list_of_transfers, total_transfered = stats
