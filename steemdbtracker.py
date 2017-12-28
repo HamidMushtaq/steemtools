@@ -4,17 +4,21 @@ import time
 import sys
 import urllib
 
+# Update this value from https://steemnow.com/upvotecalc.html
+UPVOTE_VALUE_FOR_TEN_THOUSAND_SP = 2.54
+
 bots = [
+	"aafrin",
+	"upmyvote",
+	"msp-bidbot",
+	"kittybot",
 	"boomerang",
 	"sneaky-ninja", 
 	"voter", 
-	"pushup", 
-	"lovejuice", 
+	"pushup",  
 	"buildawhale", 
 	"minnowhelper", 
-	"booster", 
 	"discordia",
-	"upgoater",
 	"appreciator",
 	"sleeplesswhale"
 ]
@@ -45,6 +49,8 @@ def getStats(bot):
 				total_transfered = total_transfered + float(s[1].strip())
 			if ("upvote " in line) and (bot in last_line):
 				line_ctr = 0
+				#print line
+				#print "last_line: " + last_line
 				return steem_power, power, list_of_transfers, total_transfered
 		if (line_ctr == 0) and ("Voting Weight</h5>" in line) and (steem_power == 0):
 			line_ctr = 1
@@ -62,9 +68,13 @@ start_time = time.time()
 
 slist = []
 for bot in bots:
-	(steem_power, a, b, c) = getStats(bot)
+	try:
+		(steem_power, a, b, c) = getStats(bot)
+	except:
+		print "ERROR on reading bot " + bot
+		pass
 	power = a.split('%')[0]
-	element = (bot, steem_power / 1e4, power, b, c)
+	element = (bot, steem_power * UPVOTE_VALUE_FOR_TEN_THOUSAND_SP / 1e4, power, b, c)
 	slist.append(element)
 	
 sorted_list = sorted(slist, key=lambda x:float(x[2]))
