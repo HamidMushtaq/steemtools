@@ -27,10 +27,10 @@ sbd_worth_btc = sbd_btc * sbds
 total_worth_usd = steem_worth_usd + sbd_worth_usd
 total_worth_btc = steem_worth_btc + sbd_worth_btc
 
-print "\nPrice of SBD = $%.2f (%.4f BTC)" % (sbd_usd, sbd_btc)
-print "Price of STEEM = $%.2f (%.4f BTC)\n" % (steem_usd, steem_btc)
+print "\nPrice of SBD = $%.2f (%.6f BTC)" % (sbd_usd, sbd_btc)
+print "Price of STEEM = $%.2f (%.6f BTC)\n" % (steem_usd, steem_btc)
 
-print "The total worth of your SBDs = $%.2f (%.4f BTC)" % (sbd_worth_usd, sbd_worth_btc)
-print "The total worth of your STEEM = $%.2f (%.4f BTC)" % (steem_worth_usd, steem_worth_btc)
+print "The total worth of your SBDs = $%.2f (%.6f BTC)" % (sbd_worth_usd, sbd_worth_btc)
+print "The total worth of your STEEM = $%.2f (%.6f BTC)" % (steem_worth_usd, steem_worth_btc)
 
-print "The total worth of your Steemit account = $%.2f (%.4f BTC)" % (total_worth_usd, total_worth_btc)
+print "The total worth of your Steemit account = $%.2f (%.6f BTC)" % (total_worth_usd, total_worth_btc)
