@@ -1,0 +1,15 @@
+steem = 102
+
+steem-dollars = 15.7
+
+cardano = 500.5
+
+eos = 10.57
+
+bitcoin-cash = 0.2
+
+bitcoin:bittrex = 0.12
+
+bitcoin:wallet = 0.17
+
+ethereum = 3.07
