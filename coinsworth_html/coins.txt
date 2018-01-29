@@ -1,3 +1,5 @@
+currency=eur
+
 steem = 102
 
 steem-dollars = 15.7
