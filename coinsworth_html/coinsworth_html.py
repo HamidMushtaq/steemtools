@@ -125,7 +125,7 @@ for coin in sorted_coins:
 	f.write('<tr>\n')
 	if (coin.price_cur != 0):
 		price = "%0.3f %s (%0.8f BTC)" % (coin.price_cur, CURRENCY.upper(), coin.price_cur / btc_ratio)
-		amount = "%0.3f" % coin.amount
+		amount = "%g" % coin.amount
 		worth = "%0.3f %s (%0.4f BTC)" % (coin.worth, CURRENCY.upper(), coin.worth / btc_ratio) 
 		change1h = "<td class=\"%s\">%0.2f%%</td>" % ("green_cell" if (coin.change1h >= 0) else "red_cell", coin.change1h)
 		change24h = "<td class=\"%s\">%0.2f%%</td>" % ("green_cell" if (coin.change24h >= 0) else "red_cell", coin.change24h)
@@ -133,7 +133,7 @@ for coin in sorted_coins:
 			(name, imageStr(coin.name), price, change1h, change24h, amount, worth))
 	else:
 		price = "This coin doesn't exist" 
-		amount = "%0.3f" % coin.amount
+		amount = "%0.4f" % coin.amount
 		worth = "-" 
 		change1h = "<td>-</td>"
 		change24h = "<td>-</td>"
