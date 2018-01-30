@@ -103,7 +103,7 @@ h2 {
 }
 
 .green_cell {
-    color: green;
+    color: limegreen;
 }
 .red_cell {
     color: red;
@@ -124,9 +124,9 @@ for coin in sorted_coins:
 		(i, coin.name.split(':')[0].lower(), coin.name.upper())
 	f.write('<tr>\n')
 	if (coin.price_cur != 0):
-		price = "%0.3f %s (%0.8f BTC)" % (coin.price_cur, CURRENCY.upper(), coin.price_cur / btc_ratio)
+		price = "%.4f %s (%0.8f BTC)" % (coin.price_cur, CURRENCY.upper(), coin.price_cur / btc_ratio)
 		amount = "%g" % coin.amount
-		worth = "%0.3f %s (%0.4f BTC)" % (coin.worth, CURRENCY.upper(), coin.worth / btc_ratio) 
+		worth = "%0.2f %s (%0.4f BTC)" % (coin.worth, CURRENCY.upper(), coin.worth / btc_ratio) 
 		change1h = "<td class=\"%s\">%0.2f%%</td>" % ("green_cell" if (coin.change1h >= 0) else "red_cell", coin.change1h)
 		change24h = "<td class=\"%s\">%0.2f%%</td>" % ("green_cell" if (coin.change24h >= 0) else "red_cell", coin.change24h)
 		f.write("\t<td>%s%s</td>\n \t<td>%s</td>\n \t%s\n \t%s\n \t<td>%s</td>\n \t<td>%s</td>\n" % \
