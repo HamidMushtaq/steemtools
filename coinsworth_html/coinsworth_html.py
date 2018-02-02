@@ -3,35 +3,57 @@
 # Author: Hamid Mushtaq
 import time
 import json, requests
+import math
 import operator
 import datetime
 import webbrowser, os
 import os.path
 import locale
+from copy import deepcopy
 
 CURRENCY="usd" # If no currency is given in coins.txt, USD would be assumed as default.
 
 coins = {}
+coins_combined = {} # Each coin combined from different exchanges 
 total_worth = {}
 total = 0.0
 
+# If no currency is given in coins.txt, USD would be assumed as default
+rj = requests.get('https://api.coinmarketcap.com/v1/ticker/bitcoin/').json()[0]
+btc_ratio = float(rj["price_usd"])
+btc_change1h = float(rj["percent_change_1h"])
+btc_change4h = float(rj["percent_change_24h"])
+
 class Coin(object):
-	def __init__(self, coin_info, amount, price_cur, change1h, change24h):
-		context = "other"
+	def __init__(self, coin_info, amount):
+		self.context = "other"
 		coin_and_context = coin_info.split(':')
-		if len(coin_and_context) > 1:
-			context = coin_and_context[1].strip()
-		if context not in coins:
-			coins[context] = []
-			total_worth[context] = 0.0
 		
 		self.name = coin_and_context[0].strip()
-		self.context = context
 		self.amount = amount
-		self.price_cur = price_cur
-		self.worth = amount * price_cur
-		self.change1h = change1h
-		self.change24h = change24h
+		
+		if len(coin_and_context) > 1:
+			self.context = coin_and_context[1].strip()
+		if self.context not in coins:
+			coins[self.context] = []
+			total_worth[self.context] = 0.0
+	
+		if self.name not in coins_combined:
+			coins_combined[self.name] = []
+	
+		try:
+			req_str = 'https://api.coinmarketcap.com/v1/ticker/' + self.name + '/?convert=' + CURRENCY
+			rj = requests.get(req_str).json()[0]
+			self.price_cur = float(rj["price_" + CURRENCY])
+			self.worth = self.amount * self.price_cur
+			self.change1h = float(rj["percent_change_1h"])
+			self.change24h = float(rj["percent_change_24h"])
+		except:
+			coin = Coin(coin_info, float(coin_amount), 0, 0, 0, True)
+			self.price_cur = 0
+			self.worth = 0
+			self.change1h = 0
+			self.change24h = 0
 		
 def imageStr(coinInfo):
 	coinName = coinInfo.split(':')[0]
@@ -39,13 +61,23 @@ def imageStr(coinInfo):
 		return " <img src=../images/%s.png alt=\"\" height=24 width=24></img>" % coinName  
 	else:
 		return ""
+				
+def drawProgressBar(val, _1h):
+	width_factor = 20 if _1h else 4
+	if val < 0:
+		width = min(int(abs(val) * width_factor), 100)
+		s = "<div class=\"w3-black\">\n<div class=\"w3-container w3-red w3-center\" style=\"width:%d%%\">%.2f%%</div></div>" % \
+			(width, val)
+	elif val > 0:
+		width = min(int(abs(val) * width_factor), 100)
+		s = "<div class=\"w3-black\">\n<div class=\"w3-container w3-green w3-center\" style=\"width:%d%%\">%.2f%%</div></div>" % \
+			(width, val)
+	else:
+		s = "<div class=\"w3-black\">\n<div class=\"w3-container w3-green w3-center\" style=\"width:%d%%\">%.2f%%</div></div>" % \
+			(0, 0)
+			
+	return s
 		
-# If no currency is given in coins.txt, USD would be assumed as default
-rj = requests.get('https://api.coinmarketcap.com/v1/ticker/bitcoin/').json()[0]
-btc_ratio = float(rj["price_usd"])
-btc_change1h = float(rj["percent_change_1h"])
-btc_change4h = float(rj["percent_change_24h"])
-
 filepath = 'coins.txt'
 now = datetime.datetime.now()
 current_time = now.strftime("%d_%m_%Y-%H_%M")   
@@ -56,6 +88,7 @@ html_fname = 'html/coinstable_%s.html' % current_time
 f = open(html_fname, 'w')
 f.write('<!DOCTYPE html>\n<html>\n<body bgcolor=lavender>\n\n')
 table_style="""
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <style>
 #cointable {
 	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
@@ -115,23 +148,41 @@ for line in lines:
 			except:
 				CURRENCY = 'usd' # When an invalid currency is entered, revert back to the default usd.
 		continue
-	coin_amount = x[1].strip()
 	
-	try:
-		req_str = 'https://api.coinmarketcap.com/v1/ticker/' + coin_name + '/?convert=' + CURRENCY
-		rj = requests.get(req_str).json()[0]
-		price = rj["price_" + CURRENCY]
-		change1h = rj["percent_change_1h"]
-		change24h = rj["percent_change_24h"]
-		coin = Coin(coin_info, float(coin_amount), float(price), float(change1h), float(change24h))  
-	except:
-		coin = Coin(coin_info, float(coin_amount), 0, 0, 0)
+	coin_amount = x[1].strip()
+	coin = Coin(coin_info, float(coin_amount))
 	coins[coin.context].append(coin)
+	coins_combined[coin.name].append(coin)
 	total_worth[coin.context] = total_worth[coin.context] + coin.worth
 	total = total + coin.worth
+	
+def drawRow(i, coin):
+	name = "%d. <a href=\"https://coinmarketcap.com/currencies/%s/\" target=\"_blank\">%s</a>" % (i, coin.name.lower(), coin.name.upper())
+	f.write('<tr>\n')
+	if (coin.price_cur != 0):
+		price = "%.4f %s (%0.8f BTC)" % (coin.price_cur, CURRENCY.upper(), coin.price_cur / btc_ratio)
+		amount = "%g" % coin.amount
+		worth = "%0.2f %s (%0.4f BTC)" % (coin.worth, CURRENCY.upper(), coin.worth / btc_ratio)
+		change1h_td = "<td>" + drawProgressBar(coin.change1h, True) + "</td>"
+		change24h_td = "<td>" + drawProgressBar(coin.change24h, False) + "</td>"
+		# Changes with respect to BTC
+		change1h_wrt_btc = coin.change1h - btc_change1h
+		change24h_wrt_btc = coin.change24h - btc_change4h
+		change1h_wrt_btc_td = "<td>" + drawProgressBar(change1h_wrt_btc, True) + "</td>"
+		change24h_wrt_btc_td = "<td>" + drawProgressBar(change24h_wrt_btc, False) + "</td>"
+		f.write("\t<td>%s%s</td>\n \t<td>%s</td>\n \t<td>%s</td>\n \t<td>%s</td>\n \t%s\n \t%s\n \t%s\n \t%s\n" % \
+			(name, imageStr(coin.name), amount, worth, price, change1h_td, change1h_wrt_btc_td, change24h_td, change24h_wrt_btc_td))
+	else:
+		price = "This coin doesn't exist" 
+		amount = "%0.4f" % coin.amount
+		worth = "-" 
+		change = "<td>-</td>"
+		f.write("\t<td>%s%s</td>\n  \t<td>%s</td>\n \t<td>%s</td>\n \t<td>%s</td>\n \t%s\n \t%s\n \t%s\n \t%s\n" % \
+			(name, imageStr(coin.name), amount, worth, price, change, change, change, change))
+	f.write('</tr>\n\n')
 
 def drawTable(context):
-	sorted_coins = sorted(coins[context], key=operator.attrgetter('change1h'), reverse=True)
+	sorted_coins = sorted(coins[context], key=operator.attrgetter('worth'), reverse=True)
 
 	f.write('<h2>Total worth %s = <colored_span>%.2f %s (%.4f BTC)</colored_span></h2>\n' % \
 		("for rest" if context == "other" else "at " + context, total_worth[context], CURRENCY.upper(), total_worth[context] / btc_ratio))
@@ -140,33 +191,35 @@ def drawTable(context):
 	f.write('<table id = cointable>\n<tr>\n\t<th>Coin</th>\n \t<th>Amount</th>\n \t<th>Worth</th> \t<th>Price</th>\n \t<th>Change in 1 hour</th>\n \t<th>Change in 1 hour w.r.t BTC</th>\n \t<th>Change in 24 hours</th>\n \t<th>Change in 24 hours w.r.t BTC</th>\n \n')
 	for coin in sorted_coins:
 		i = i + 1
-		name = "%d. <a href=\"https://coinmarketcap.com/currencies/%s/\" target=\"_blank\">%s</a>" % (i, coin.name.lower(), coin.name.upper())
-		f.write('<tr>\n')
-		if (coin.price_cur != 0):
-			price = "%.4f %s (%0.8f BTC)" % (coin.price_cur, CURRENCY.upper(), coin.price_cur / btc_ratio)
-			amount = "%g" % coin.amount
-			worth = "%0.2f %s (%0.4f BTC)" % (coin.worth, CURRENCY.upper(), coin.worth / btc_ratio)
-			change1h_td = "<td class=\"%s\">%0.2f%%</td>" % ("green_cell" if (coin.change1h >= 0) else "red_cell", coin.change1h)
-			change24h_td = "<td class=\"%s\">%0.2f%%</td>" % ("green_cell" if (coin.change24h >= 0) else "red_cell", coin.change24h)
-			# Changes with respect to BTC
-			change1h_wrt_btc = coin.change1h - btc_change1h
-			change24h_wrt_btc = coin.change24h - btc_change4h
-			change1h_wrt_btc_td = "<td class=\"%s\">%0.2f%%</td>" % ("green_cell" if (change1h_wrt_btc >= 0) else "red_cell", change1h_wrt_btc)
-			change24h_wrt_btc_td = "<td class=\"%s\">%0.2f%%</td>" % ("green_cell" if (change24h_wrt_btc >= 0) else "red_cell", change24h_wrt_btc)
-			f.write("\t<td>%s%s</td>\n \t<td>%s</td>\n \t<td>%s</td>\n \t<td>%s</td>\n \t%s\n \t%s\n \t%s\n \t%s\n" % \
-				(name, imageStr(coin.name), amount, worth, price, change1h_td, change1h_wrt_btc_td, change24h_td, change24h_wrt_btc_td))
-		else:
-			price = "This coin doesn't exist" 
-			amount = "%0.4f" % coin.amount
-			worth = "-" 
-			change = "<td>-</td>"
-			f.write("\t<td>%s%s</td>\n  \t<td>%s</td>\n \t<td>%s</td>\n \t<td>%s</td>\n \t%s\n \t%s\n \t%s\n \t%s\n" % \
-				(name, imageStr(coin.name), amount, worth, price, change, change, change, change))
-		f.write('</tr>\n\n')
+		drawRow(i, coin)
+	f.write('</table>\n<br/>\n')
+		
+def drawCombinedTable():
+	coins_dict = {}
+	
+	# coins_combined -> (coin_name, [coin at bittrex, coin at bitfinex ...] etc)
+	for coin_name in coins_combined:
+		total_amount = 0.0
+		coin_list = coins_combined[coin_name]
+		coin = deepcopy(coin_list[0])
+		for c in coin_list:
+			total_amount = total_amount + c.amount
+		coin.amount = total_amount
+		coin.worth = coin.amount * coin.price_cur
+		coins_dict[coin_name] = coin
+	
+	i = 0
+	f.write('<table id = cointable>\n<tr>\n\t<th>Coin</th>\n \t<th>Amount</th>\n \t<th>Worth</th> \t<th>Price</th>\n \t<th>Change in 1 hour</th>\n \t<th>Change in 1 hour w.r.t BTC</th>\n \t<th>Change in 24 hours</th>\n \t<th>Change in 24 hours w.r.t BTC</th>\n \n')
+	sorted_coins = sorted(coins_dict.items(), key=lambda x: x[1].worth, reverse=True)
+	for x in sorted_coins:
+		i = i + 1
+		coin = x[1]
+		drawRow(i, coin)
 	f.write('</table>\n<br/>\n')
 
-f.write('<h2>Total worth = <colored_span>%.2f %s (%.4f BTC)</colored_span></h2>\n<hr>\n' % (total, CURRENCY.upper(), total / btc_ratio))
+f.write('<h2>Total worth = <colored_span>%.2f %s (%.4f BTC)</colored_span></h2>\n' % (total, CURRENCY.upper(), total / btc_ratio))
 sorted_total_worth = sorted(total_worth.items(), key=operator.itemgetter(1), reverse=True)
+drawCombinedTable()
 for e in sorted_total_worth:
 	drawTable(e[0])
 f.write('</body>\n</html>\n')
