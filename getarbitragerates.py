@@ -1,8 +1,8 @@
-# This program calculates the total worth of all your coins
-# All your coins with their amounts should be put in a file coins.txt. An example file is given in this folder.
+# This program calculates the ask and bid rates at different exchanges, and tells you the best option for arbitrage trading.
 # Author: Hamid Mushtaq
 import sys
 import json, requests
+import datetime
 
 rj_cryptopia = requests.get('https://www.cryptopia.co.nz/api/GetMarkets/BTC').json()['Data']
 rj_poloniex = requests.get('https://poloniex.com/public?command=returnTicker').json()
@@ -98,6 +98,8 @@ while True:
 	rasks = [rcryptopia[0], rbittrex[0], rhitbtc[0], rpoloniex[0]]
 	rbids = [rcryptopia[1], rbittrex[1], rhitbtc[1], rpoloniex[1]]
 	
+	now = datetime.datetime.now()
+	print(now.strftime("\nTime: %H:%M:%S"))
 	print('%10s: %s' % ('Crytopia', getAskAndBidStr(rcryptopia)))
 	print('%10s: %s' % ('Bittrex', getAskAndBidStr(rbittrex)))
 	print('%10s: %s' % ('HitBTC', getAskAndBidStr(rhitbtc)))
@@ -105,7 +107,8 @@ while True:
 	
 	lowestAsk, highestBid, lowestAskIndex, highestBidIndex = getBestRate(rasks, rbids)
 	if (lowestAskIndex != -1) and (highestBidIndex != -1):
-		print("\nBuy from %s at %g ($%g)" % (EXCHANGES[lowestAskIndex], lowestAsk, lowestAsk * btc_usd))
+		print("--------------------------------------------")
+		print("Buy from %s at %g ($%g)" % (EXCHANGES[lowestAskIndex], lowestAsk, lowestAsk * btc_usd))
 		print("Sell on %s at %g ($%g)" % (EXCHANGES[highestBidIndex], highestBid, highestBid * btc_usd))
 		profit = amount * (highestBid - lowestAsk)
 		print("Profit with %g coins = %g BTC ($%g)" % (amount, profit, profit * btc_usd))
