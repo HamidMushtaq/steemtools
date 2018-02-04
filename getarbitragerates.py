@@ -8,7 +8,7 @@ rj_cryptopia = requests.get('https://www.cryptopia.co.nz/api/GetMarkets/BTC').js
 rj_poloniex = requests.get('https://poloniex.com/public?command=returnTicker').json()
 
 first_time = True
-EXCHANGES = ["Cryptopia", "Bittrex", "HitBTC", "Poloniex"]
+EXCHANGES = ["Cryptopia", "Bittrex", "HitBTC", "Poloniex", "Binance"]
 
 # https://www.cryptopia.co.nz/Forum/Thread/255
 def getFromCryptopia(coin):
@@ -38,6 +38,14 @@ def getFromHitBTC(coin):
 	try:
 		r = requests.get('https://api.hitbtc.com/api/2/public/ticker/' + coin.upper() + 'BTC').json()
 		return (float(r['ask']), float(r['bid']))
+	except:
+		return (0,0)
+		
+# https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md
+def getFromBinance(coin):
+	try:
+		r = requests.get('https://api.binance.com/api/v1/ticker/24hr?symbol=' + coin.upper() + 'BTC').json()
+		return (float(r['askPrice']), float(r['bidPrice']))
 	except:
 		return (0,0)
 		
@@ -94,9 +102,10 @@ while True:
 	rbittrex = getFromBittrex(coin)
 	rhitbtc = getFromHitBTC(coin)
 	rpoloniex = getFromPoloniex(coin)
+	rbinance = getFromBinance(coin)
 	
-	rasks = [rcryptopia[0], rbittrex[0], rhitbtc[0], rpoloniex[0]]
-	rbids = [rcryptopia[1], rbittrex[1], rhitbtc[1], rpoloniex[1]]
+	rasks = [rcryptopia[0], rbittrex[0], rhitbtc[0], rpoloniex[0], rbinance[0]]
+	rbids = [rcryptopia[1], rbittrex[1], rhitbtc[1], rpoloniex[1], rbinance[1]]
 	
 	now = datetime.datetime.now()
 	print(now.strftime("\nTime: %H:%M:%S"))
@@ -104,6 +113,7 @@ while True:
 	print('%10s: %s' % ('Bittrex', getAskAndBidStr(rbittrex)))
 	print('%10s: %s' % ('HitBTC', getAskAndBidStr(rhitbtc)))
 	print('%10s: %s' % ('Poloniex', getAskAndBidStr(rpoloniex)))
+	print('%10s: %s' % ('Binance', getAskAndBidStr(rbinance)))
 	
 	lowestAsk, highestBid, lowestAskIndex, highestBidIndex = getBestRate(rasks, rbids)
 	if (lowestAskIndex != -1) and (highestBidIndex != -1):
@@ -112,4 +122,4 @@ while True:
 		print("Sell on %s at %g ($%g)" % (EXCHANGES[highestBidIndex], highestBid, highestBid * btc_usd))
 		profit = amount * (highestBid - lowestAsk)
 		print("Profit with %g coins = %g BTC ($%g)" % (amount, profit, profit * btc_usd))
-	
+		print("--------------------------------------------")
