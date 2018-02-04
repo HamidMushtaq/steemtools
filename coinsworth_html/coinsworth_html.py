@@ -130,7 +130,7 @@ f.write(table_style + '\n')
 with open(filepath) as fp:  
 		lines = fp.readlines()
 
-print "Gathering all the necessary information..."
+print("Gathering all the necessary information...")
 for line in lines:
 	x = line.split('=')
 	if len(x) < 2:
@@ -217,7 +217,7 @@ def drawCombinedTable():
 		drawRow(i, coin)
 	f.write('</table>\n<br/>\n')
 
-print "Generating the html file " + html_fname + "..."
+print("Generating the html file " + html_fname + "...")
 f.write('<h2>Total worth = <colored_span>%.2f %s (%.4f BTC)</colored_span></h2>\n' % (total, CURRENCY.upper(), total / btc_ratio))
 sorted_total_worth = sorted(total_worth.items(), key=operator.itemgetter(1), reverse=True)
 drawCombinedTable()
@@ -226,5 +226,5 @@ for e in sorted_total_worth:
 f.write('</body>\n</html>\n')
 
 f.close()
-print "Opening the html file " + html_fname
+print ("Opening the html file " + html_fname)
 webbrowser.open('file://' + os.path.realpath(html_fname))
