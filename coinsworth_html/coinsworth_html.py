@@ -157,7 +157,7 @@ for line in lines:
 	total = total + coin.worth
 	
 def drawRow(i, coin):
-	name = "%d. <a href=\"https://coinmarketcap.com/currencies/%s/\" target=\"_blank\">%s</a>" % (i, coin.name.lower(), coin.name.upper())
+	name = "<a href=\"https://coinmarketcap.com/currencies/%s/\" target=\"_blank\">%s</a>" % (coin.name.lower(), coin.name.upper())
 	f.write('<tr>\n')
 	if (coin.price_cur != 0):
 		price = "%.4f %s (%0.8f BTC)" % (coin.price_cur, CURRENCY.upper(), coin.price_cur / btc_ratio)
@@ -170,15 +170,15 @@ def drawRow(i, coin):
 		change24h_wrt_btc = coin.change24h - btc_change4h
 		change1h_wrt_btc_td = "<td>" + drawProgressBar(change1h_wrt_btc, True) + "</td>"
 		change24h_wrt_btc_td = "<td>" + drawProgressBar(change24h_wrt_btc, False) + "</td>"
-		f.write("\t<td>%s%s</td>\n \t<td>%s</td>\n \t<td>%s</td>\n \t<td>%s</td>\n \t%s\n \t%s\n \t%s\n \t%s\n" % \
-			(name, imageStr(coin.name), amount, worth, price, change1h_td, change1h_wrt_btc_td, change24h_td, change24h_wrt_btc_td))
+		f.write("\t<td>%d. %s %s</td>\n \t<td>%s</td>\n \t<td>%s</td>\n \t<td>%s</td>\n \t%s\n \t%s\n \t%s\n \t%s\n" % \
+			(i, imageStr(coin.name), name, amount, worth, price, change1h_td, change1h_wrt_btc_td, change24h_td, change24h_wrt_btc_td))
 	else:
 		price = "This coin doesn't exist" 
 		amount = "%0.4f" % coin.amount
 		worth = "-" 
 		change = "<td>-</td>"
-		f.write("\t<td>%s%s</td>\n  \t<td>%s</td>\n \t<td>%s</td>\n \t<td>%s</td>\n \t%s\n \t%s\n \t%s\n \t%s\n" % \
-			(name, imageStr(coin.name), amount, worth, price, change, change, change, change))
+		f.write("\t<td>%d. %s %s</td>\n  \t<td>%s</td>\n \t<td>%s</td>\n \t<td>%s</td>\n \t%s\n \t%s\n \t%s\n \t%s\n" % \
+			(i, imageStr(coin.name), name, amount, worth, price, change, change, change, change))
 	f.write('</tr>\n\n')
 
 def drawTable(context):
