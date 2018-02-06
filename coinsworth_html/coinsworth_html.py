@@ -65,14 +65,14 @@ def drawProgressBar(val, _1h):
 	width_factor = 20 if _1h else 4
 	if val < 0:
 		width = min(int(abs(val) * width_factor), 100)
-		s = "<div class=\"w3-black\">\n<div class=\"w3-container w3-red w3-center\" style=\"width:%d%%\">%.2f%%</div></div>" % \
+		s = "<div class=\"w3-black\"><div class=\"w3-container w3-red w3-center\" style=\"width:%d%%\">%.2f%%</div></div>" % \
 			(width, val)
 	elif val > 0:
 		width = min(int(abs(val) * width_factor), 100)
-		s = "<div class=\"w3-black\">\n<div class=\"w3-container w3-green w3-center\" style=\"width:%d%%\">%.2f%%</div></div>" % \
+		s = "<div class=\"w3-black\"><div class=\"w3-container w3-green w3-center\" style=\"width:%d%%\">%.2f%%</div></div>" % \
 			(width, val)
 	else:
-		s = "<div class=\"w3-black\">\n<div class=\"w3-container w3-green w3-center\" style=\"width:%d%%\">%.2f%%</div></div>" % \
+		s = "<div class=\"w3-black\"><div class=\"w3-container w3-green w3-center\" style=\"width:%d%%\">%.2f%%</div></div>" % \
 			(0, 0)
 			
 	return s
@@ -85,7 +85,7 @@ if not os.path.isdir('html'):
 		os.makedirs('html')
 html_fname = 'html/coinstable_%s.html' % current_time
 f = open(html_fname, 'w')
-f.write('<!DOCTYPE html>\n<html>\n<body bgcolor=lavender>\n\n')
+f.write('<!DOCTYPE html>\n<html>\n<body bgcolor=lavender>\n')
 table_style="""
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <style>
@@ -179,7 +179,7 @@ def drawRow(i, coin):
 		change = "<td>-</td>"
 		f.write("\t<td>%d. %s %s</td>\n  \t<td>%s</td>\n \t<td>%s</td>\n \t<td>%s</td>\n \t%s\n \t%s\n \t%s\n \t%s\n" % \
 			(i, imageStr(coin.name), name, amount, worth, price, change, change, change, change))
-	f.write('</tr>\n\n')
+	f.write('</tr>\n')
 
 def drawTable(context):
 	sorted_coins = sorted(coins[context], key=operator.attrgetter('worth'), reverse=True)
@@ -192,7 +192,7 @@ def drawTable(context):
 	for coin in sorted_coins:
 		i = i + 1
 		drawRow(i, coin)
-	f.write('</table>\n<br/>\n')
+	f.write('</table>\n\n<br/>\n')
 		
 def drawCombinedTable():
 	coins_dict = {}
