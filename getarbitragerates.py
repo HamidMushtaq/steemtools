@@ -4,22 +4,21 @@ import sys
 import json, requests
 import datetime
 
-rj_cryptopia = requests.get('https://www.cryptopia.co.nz/api/GetMarkets/BTC').json()['Data']
-rj_poloniex = requests.get('https://poloniex.com/public?command=returnTicker').json()
-
 first_time = True
 EXCHANGES = ["Cryptopia", "Bittrex", "HitBTC", "Poloniex", "Binance"]
 
 # https://www.cryptopia.co.nz/Forum/Thread/255
 def getFromCryptopia(coin):
-	for r in rj_cryptopia:
-		if r['Label'] == (coin.upper() + '/BTC'):
-			return (float(r['AskPrice']), float(r['BidPrice']))
-	return (0,0)
+	try:
+		r = requests.get('https://www.cryptopia.co.nz/api/GetMarket/' + coin.upper() + '_BTC').json()['Data']
+		return (float(r['AskPrice']), float(r['BidPrice']))
+	except:
+		return (0,0)
 	
 # https://poloniex.com/support/api/
 def getFromPoloniex(coin):
 	try:
+		rj_poloniex = requests.get('https://poloniex.com/public?command=returnTicker').json()
 		r = rj_poloniex["BTC_" + coin.upper()]
 		return (float(r['lowestAsk']), float(r['highestBid']))
 	except:
