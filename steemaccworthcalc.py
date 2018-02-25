@@ -56,8 +56,9 @@ def get_user_data(user):
 	steem =  float(data['balance'].split()[0])
 	sbd = float(data['sbd_balance'].split()[0])
 	vests = float(data['vesting_shares'].split()[0])
+	received_vests = float(data['received_vesting_shares'].split()[0])
 	
-	return steem, sbd, vests
+	return steem, sbd, vests, received_vests
 
 if len(sys.argv) > 1:
 	username = sys.argv[1]
@@ -90,19 +91,23 @@ print("\t* STEEM price = %g %s (%g BTC)" % (steem_btc * btc_price, currency_symb
 print("\t* SBD price = %s %s (%g BTC)\n" % (sbd_btc * btc_price, currency_symbol, sbd_btc))
 
 try:
-	steem, sbd, vests = get_user_data(username)
+	steem, sbd, vests, received_vests = get_user_data(username)
 except:
 	print("User %s is not found!" % username)
 	sys.exit(1)
 steem_power = vests * steem_per_mvests / 1e6
+delegated_steem_power = received_vests * steem_per_mvests / 1e6
 
 steem_worth = steem * steem_btc
 steem_power_worth = steem_power * steem_btc
+delegated_steem_power_worth = delegated_steem_power * steem_btc
 sbd_worth = sbd * sbd_btc
 total_worth = steem_worth + steem_power_worth + sbd_worth
 
 print(username + " has:")
 print("\t* %g STEEM worth %g %s (%g BTC)" % (steem, steem_worth * btc_price, currency_symbol, steem_worth))
 print("\t* %g STEEM POWER worth %g %s (%g BTC)" % (steem_power, steem_power_worth * btc_price, currency_symbol, steem_power_worth))
+print("\t\t* %g Delegated STEEM POWER worth %g %s (%g BTC)" % (delegated_steem_power, delegated_steem_power_worth * btc_price, 
+	currency_symbol, delegated_steem_power_worth))
 print("\t* %g SBDs worth %g %s (%g BTC)" % (sbd, sbd_worth * btc_price, currency_symbol, sbd_worth))
 print("\n\t* Total steemit worth of %g %s (%g BTC)" % (total_worth * btc_price, currency_symbol, total_worth))
