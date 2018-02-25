@@ -80,7 +80,11 @@ print("\t* BTC price = %s %s" % (btc_price, currency_symbol))
 print("\t* STEEM price = %g %s (%g BTC)" % (steem_btc * btc_price, currency_symbol, steem_btc))
 print("\t* SBD price = %s %s (%g BTC)\n" % (sbd_btc * btc_price, currency_symbol, sbd_btc))
 
-steem, sbd, vests = get_user_data(username)
+try:
+	steem, sbd, vests = get_user_data(username)
+except:
+	print("User %s is not found!" % username)
+	sys.exit(1)
 steem_power = vests * steem_per_mvests / 1e6
 
 steem_worth = steem * steem_btc
