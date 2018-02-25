@@ -1,4 +1,4 @@
-# This program calculates the total worth of your steemit account in USD and BTC
+# This program calculates the total worth of your steemit account in Fiat and BTC
 # At the moment, it works with only Python 2.7 (not Python 3)
 # Author: Hamid Mushtaq
 import time
