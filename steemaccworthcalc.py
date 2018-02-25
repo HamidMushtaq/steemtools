@@ -1,36 +1,95 @@
 # This program calculates the total worth of your steemit account in USD and BTC
-# Before running it, install the coinmarket api -> pip install coinmarketcap
+# At the moment, it works with only Python 2.7 (not Python 3)
 # Author: Hamid Mushtaq
 import time
 import coinmarketcap
+import sys
+import requests # if its not installed already, install it using "pip install requests"
+import json
+import urllib
+import re
 
-print
-steem = float(input("Enter the amount of STEEM you have: "))
-sbds = float(input("Enter the amount of SBDs you have: "))
+currency = "eur" # default is usd
+		
+def get_steem_per_mvests():
+	site = "https://steemd.com/"
+	print("Communicating with site " + site + " to find the value of steem_per_mvests")
+	f = urllib.urlopen(site)
+	content = f.read()
+	lines = content.split("\n")
+	data = ""
+	for line in lines:
+		if 'steem_per_mvests' in line:
+			# See reg exp examples at https://www.tutorialspoint.com/python/python_reg_expressions.htm
+			matchObj = re.match( r'(.*)steem_per_mvests</samp></th></tr><tr><td><i>(.*?)</i>', line, re.I)
+			steem_per_mvests = matchObj.group(2)
+			print("\tsteem_per_mvests = " + steem_per_mvests)
+			return float(steem_per_mvests)
+			
+def get_btc_price():
+	rj = requests.get('https://api.coinmarketcap.com/v1/ticker/bitcoin/?convert=' + currency).json()[0]
+	return float(rj["price_" + currency])
+	
+def get_sbd_price_in_btc():
+	req_str = 'https://api.coinmarketcap.com/v1/ticker/steem-dollars/'
+	rj = requests.get(req_str).json()[0]
+	return float(rj["price_btc"])
 
-market = coinmarketcap.Market()
+def get_steem_price_in_btc():
+	req_str = 'https://api.coinmarketcap.com/v1/ticker/steem/'
+	rj = requests.get(req_str).json()[0]
+	return float(rj["price_btc"])
+	
+def get_user_data(user):
+	url = 'https://api.steemit.com'
+	
+	data = {
+		"jsonrpc": "2.0",
+		"method": "get_accounts",
+		"params": [[user]],
+		"id": 1
+	}
+	
+	resp = requests.post(url, json=data)
+	data = json.loads(resp.content)['result'][0]
+	# split()[0] to remove the currency's name
+	steem =  float(data['balance'].split()[0])
+	sbd = float(data['sbd_balance'].split()[0])
+	vests = float(data['vesting_shares'].split()[0])
+	
+	return steem, sbd, vests
 
-sbd_coin = market.ticker("steem-dollars")[0]
-sbd_usd = float(sbd_coin["price_usd"])
-sbd_btc = float(sbd_coin["price_btc"])
+if len(sys.argv) > 1:
+	username = sys.argv[1]
+	if len(sys.argv) > 2:
+		currency = sys.argv[2]
+else:
+	username = raw_input('username:')
+	
+if username[0] == '@':
+	username = username[1:]
+	
+steem_per_mvests = get_steem_per_mvests()
+print("\nGetting the prices of BTC, STEEM and SBD...")
+btc_price = get_btc_price()
+steem_btc = get_steem_price_in_btc()
+sbd_btc = get_sbd_price_in_btc()
 
-steem_coin = market.ticker("steem")[0]
-steem_usd = float(steem_coin["price_usd"])
-steem_btc = float(steem_coin["price_btc"])
+currency_symbol = currency.upper()
+print("\t* BTC price = %s %s" % (btc_price, currency_symbol))
+print("\t* STEEM price = %g %s (%g BTC)" % (steem_btc * btc_price, currency_symbol, steem_btc))
+print("\t* SBD price = %s %s (%g BTC)\n" % (sbd_btc * btc_price, currency_symbol, sbd_btc))
 
-steem_worth_usd = steem_usd * steem
-steem_worth_btc = steem_btc * steem
+steem, sbd, vests = get_user_data(username)
+steem_power = vests * steem_per_mvests / 1e6
 
-sbd_worth_usd = sbd_usd * sbds
-sbd_worth_btc = sbd_btc * sbds
+steem_worth = steem * steem_btc
+steem_power_worth = steem_power * steem_btc
+sbd_worth = sbd * sbd_btc
+total_worth = steem_worth + steem_power_worth + sbd_worth
 
-total_worth_usd = steem_worth_usd + sbd_worth_usd
-total_worth_btc = steem_worth_btc + sbd_worth_btc
-
-print "\nPrice of SBD = $%.2f (%.6f BTC)" % (sbd_usd, sbd_btc)
-print "Price of STEEM = $%.2f (%.6f BTC)\n" % (steem_usd, steem_btc)
-
-print "The total worth of your SBDs = $%.2f (%.6f BTC)" % (sbd_worth_usd, sbd_worth_btc)
-print "The total worth of your STEEM = $%.2f (%.6f BTC)" % (steem_worth_usd, steem_worth_btc)
-
-print "The total worth of your Steemit account = $%.2f (%.6f BTC)" % (total_worth_usd, total_worth_btc)
+print(username + " has:")
+print("\t* %g STEEM worth %g %s (%g BTC)" % (steem, steem_worth * btc_price, currency_symbol, steem_worth))
+print("\t* %g STEEM POWER worth %g %s (%g BTC)" % (steem_power, steem_power_worth * btc_price, currency_symbol, steem_power_worth))
+print("\t* %g SBDs worth %g %s (%g BTC)" % (sbd, sbd_worth * btc_price, currency_symbol, sbd_worth))
+print("\n\t* Total steemit worth of %g %s (%g BTC)" % (total_worth * btc_price, currency_symbol, total_worth))
