@@ -9,11 +9,11 @@ import json
 import urllib
 import re
 
-currency = "eur" # default is usd
+currency = "usd" # default is usd
 		
 def get_steem_per_mvests():
 	site = "https://steemd.com/"
-	print("Communicating with site " + site + " to find the value of steem_per_mvests")
+	print("Communicating with site " + site + " to find the value of steem_per_mvests...")
 	f = urllib.urlopen(site)
 	content = f.read()
 	lines = content.split("\n")
@@ -69,12 +69,21 @@ else:
 if username[0] == '@':
 	username = username[1:]
 	
-steem_per_mvests = get_steem_per_mvests()
+try:
+	steem_per_mvests = get_steem_per_mvests()
+except:
+	print("Error getting steem_per_vests. Maybe the site is down or its interface has changed.")
+	sys.exit(1)
+	
 print("\nGetting the prices of BTC, STEEM and SBD...")
-btc_price = get_btc_price()
-steem_btc = get_steem_price_in_btc()
-sbd_btc = get_sbd_price_in_btc()
-
+try:
+	btc_price = get_btc_price()
+	steem_btc = get_steem_price_in_btc()
+	sbd_btc = get_sbd_price_in_btc()
+except:
+	print("Error getting the prices. Maybe you are using an invalid currency.")
+	sys.exit(1)
+	
 currency_symbol = currency.upper()
 print("\t* BTC price = %s %s" % (btc_price, currency_symbol))
 print("\t* STEEM price = %g %s (%g BTC)" % (steem_btc * btc_price, currency_symbol, steem_btc))
