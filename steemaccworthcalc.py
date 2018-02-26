@@ -2,7 +2,6 @@
 # At the moment, it works with only Python 2.7 (not Python 3)
 # Author: Hamid Mushtaq
 import time
-import coinmarketcap
 import sys
 import requests # if its not installed already, install it using "pip install requests"
 import json
@@ -17,12 +16,11 @@ def get_steem_per_mvests():
 	f = urllib.urlopen(site)
 	content = f.read()
 	lines = content.split("\n")
-	data = ""
 	for line in lines:
 		if 'steem_per_mvests' in line:
 			# See reg exp examples at https://www.tutorialspoint.com/python/python_reg_expressions.htm
-			matchObj = re.match( r'(.*)steem_per_mvests</samp></th></tr><tr><td><i>(.*?)</i>', line, re.I)
-			steem_per_mvests = matchObj.group(2)
+			matchObj = re.match( r'(.*)steem_per_mvests(.*?)(\d*\.\d+|\d+)(.*)', line, re.I)
+			steem_per_mvests = matchObj.group(3)
 			print("\tsteem_per_mvests = " + steem_per_mvests)
 			return float(steem_per_mvests)
 			
