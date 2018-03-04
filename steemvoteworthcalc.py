@@ -20,7 +20,7 @@ def get_steem_per_mvests():
 			
 def get_reward_stats():
 	site = "https://steemd.com/"
-	print("\nCommunicating with site " + site + " to find the values of reward_balance and recent_claims...")
+	print("\nCommunicating with site " + site + " to find the reward stats...")
 	f = urllib.urlopen(site)
 	content = f.read()
 	lines = content.split("\n")
@@ -81,8 +81,13 @@ try:
 except:
 	print("User %s is not found!" % username)
 	sys.exit(1)
+	
+try:
+	feed_price, reward_balance, recent_claims = get_reward_stats()
+except:
+	print("Error getting the reward stats. Maybe the steemd.com site is down.")
+	sys.exit(1)
 
-feed_price, reward_balance, recent_claims = get_reward_stats()
 X1 = (total_vests * 1e6 / recent_claims)
 X2 = X1 * reward_balance
 X3 = X2 * feed_price
