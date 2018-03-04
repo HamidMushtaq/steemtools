@@ -10,20 +10,28 @@ import re
 
 currency = "usd" # default is usd
 		
-def get_steem_per_mvests():
-	site = "https://steemd.com/"
-	print("Communicating with site " + site + " to find the value of steem_per_mvests...")
-	f = urllib.urlopen(site)
-	content = f.read()
-	lines = content.split("\n")
-	for line in lines:
-		if 'steem_per_mvests' in line:
-			# See reg exp examples at https://www.tutorialspoint.com/python/python_reg_expressions.htm
-			matchObj = re.match( r'(.*)steem_per_mvests(.*?)(\d*\.\d+|\d+)(.*)', line, re.I)
-			steem_per_mvests = matchObj.group(3)
-			print("\tsteem_per_mvests = " + steem_per_mvests)
-			return float(steem_per_mvests)
+# def get_steem_per_mvests():
+	# site = "https://steemd.com/"
+	# print("Communicating with site " + site + " to find the value of steem_per_mvests...")
+	# f = urllib.urlopen(site)
+	# content = f.read()
+	# lines = content.split("\n")
+	# for line in lines:
+		# if 'steem_per_mvests' in line:
+			# # See reg exp examples at https://www.tutorialspoint.com/python/python_reg_expressions.htm
+			# matchObj = re.match( r'(.*)steem_per_mvests(.*?)(\d*\.\d+|\d+)(.*)', line, re.I)
+			# steem_per_mvests = matchObj.group(3)
+			# print("\tsteem_per_mvests = " + steem_per_mvests)
+			# return float(steem_per_mvests)
 			
+def get_steem_per_mvests():
+	site = 'https://steemdb.com/api/props'
+	print("Communicating with " + site + " to find the value of steem_per_mvests...")
+	rj = requests.get(site)
+	steem_per_mvests = rj.json()[0]["steem_per_mvests"]
+	print("\t* steem_per_mvests = " + str(steem_per_mvests))
+	return steem_per_mvests
+
 def get_btc_price():
 	rj = requests.get('https://api.coinmarketcap.com/v1/ticker/bitcoin/?convert=' + currency).json()[0]
 	return float(rj["price_" + currency])
