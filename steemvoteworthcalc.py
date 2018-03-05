@@ -35,7 +35,8 @@ def get_reward_stats():
 			recent_claims = matchObj.group(6).replace(',', '')
 			print("* reward_balance = " + reward_balance)
 			print("* recent_claims = " + recent_claims)
-	
+			break
+			
 	return float(feed_price), float(reward_balance), float(recent_claims)
 	
 def get_total_vests(user):
